@@ -24,6 +24,10 @@ jobs:
       # The machine needs Chrome; this line shows its version (or fails clearly if missing)
       - run: google-chrome --version
 
+      # Save Chrome's main version number (for example 155) so main.py can download a matching driver
+      - name: Detect Chrome version
+        run: echo "CHROME_MAJOR=$(google-chrome --version | grep -oP '\d+' | head -1)" >> $GITHUB_ENV
+
       # xvfb is a fake screen, so Chrome can run without a real display
       - run: sudo apt-get update && sudo apt-get install -y xvfb
 

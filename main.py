@@ -1,3 +1,4 @@
+import os
 import random
 import time
 import pandas as pd
@@ -26,7 +27,12 @@ def crawl_all_jobs(max_pages=60):
     # undetected_chromedriver is used because plain Selenium gets blocked by Cloudflare
     options = uc.ChromeOptions()
     options.add_argument("--start-maximized")
-    driver = uc.Chrome(options=options)
+
+    # On GitHub Actions the workflow sets CHROME_MAJOR (for example 155) so the downloaded
+    # driver matches the installed Chrome. On your own computer it is not set, so we use None.
+    chrome_major = os.getenv("CHROME_MAJOR")
+    version_main = int(chrome_major) if chrome_major else None
+    driver = uc.Chrome(options=options, version_main=version_main)
 
     all_jobs = []
     page = 1
