@@ -1,0 +1,46 @@
+name: Daily job alert
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # 08:00 UTC = 09:00 Oslo in winter time (10:00 in summer time)
+  workflow_dispatch:       # lets you start it by hand from the Actions tab
+
+permissions:
+  contents: write          # needed to save the database back to the repository
+
+concurrency: daily-job-alert   # never run two crawls at the same time
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # The machine needs Chrome; this line shows its version (or fails clearly if missing)
+      - run: google-chrome --version
+
+      # xvfb is a fake screen, so Chrome can run without a real display
+      - run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - run: pip install -r requirements.txt
+
+      - name: Crawl and send alerts
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: xvfb-run -a python main.py
+
+      # The database is the "memory" of which jobs were already seen, so we save it
+      - name: Save database
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add crawled_jobs.db
+          if ! git diff --cached --quiet; then
+            git commit -m "Update crawled_jobs.db"
+            git push
+          fi
