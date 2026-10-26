@@ -54,8 +54,19 @@ def crawl_all_jobs(max_pages=60):
         soup = BeautifulSoup(html, "html.parser")
         job_cards = soup.find_all("div", class_="job-item-search-result")
 
+        # Cloudflare's "Just a moment" check page can pass by itself, so wait once and look again
+        if not job_cards and "Just a moment" in html:
+            print("Cloudflare check page. Waiting 30 seconds and looking again...")
+            time.sleep(30)
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+            job_cards = soup.find_all("div", class_="job-item-search-result")
+
         # No job cards: either we are blocked, or we passed the last page
         if not job_cards:
+            # Show what the page says, so we can tell a block from a normal empty page
+            print(f"Page title: {driver.title}")
+            print(f"First 300 characters of the page: {soup.get_text(' ', strip=True)[:300]}")
             if "Sorry, you have been blocked" in html or "Just a moment" in html:
                 print(f"!!! Blocked by Cloudflare on page {page}. Stopping.")
             else:
