@@ -2,8 +2,6 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.log
-jobs.db
-data_clean.csv
 venv/
 .venv/
 .env

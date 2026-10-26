@@ -14,6 +14,12 @@ jobs:
   crawl:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+
+    # Every "run:" step below works inside the job_alert folder
+    defaults:
+      run:
+        working-directory: job_alert
+
     steps:
       - uses: actions/checkout@v4
 
